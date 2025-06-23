@@ -71,3 +71,34 @@ def pregunta_01():
 
 
     """
+    import os
+    import pandas as pd
+    import zipfile
+    import io
+
+    def load_dataset_from_zip(zip_path, subset):
+        data = []
+        with zipfile.ZipFile(zip_path, 'r') as z:
+            for file in z.namelist():
+                parts = file.split('/')
+                if len(parts) == 4 and parts[1] == subset and file.endswith('.txt'):
+                    sentiment = parts[2]
+                    with z.open(file) as f:
+                        text = io.TextIOWrapper(f, encoding='utf-8').read().strip()
+                        data.append({'phrase': text, 'target': sentiment})
+        return pd.DataFrame(data, columns=['phrase', 'target'])
+
+    def save_csv(df, output_path):
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        df.to_csv(output_path, index=False)
+
+    zip_path = os.path.join('files', 'input.zip')
+    output_base = os.path.join('files', 'output')
+
+    train_df = load_dataset_from_zip(zip_path, 'train')
+    test_df = load_dataset_from_zip(zip_path, 'test')
+
+    save_csv(train_df, os.path.join(output_base, 'train_dataset.csv'))
+    save_csv(test_df, os.path.join(output_base, 'test_dataset.csv'))
+
+pregunta_01()
